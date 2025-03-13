@@ -1,0 +1,27 @@
+
+
+# A user in the game
+_____________________
+User                |
+____________________|
+id : uuid           |
+____________________|
+
+# One item in the context
+# such as a skin or weapon
+_____________________
+Item                |
+____________________|
+id : uuid           |
+type: str           |
+____________________|
+
+#One user owns an item
+_____________________
+Ownership           |
+____________________|
+id : uuid           |
+owner: User         |
+item : Item         |
+____________________|
+
