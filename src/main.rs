@@ -1,9 +1,23 @@
 use std::env;
 use std::collections::HashMap;
 
-use futures::executor::block_on;
+use async_std::task;
+use sea_orm_migration::prelude::*;
 
 mod backend;
+mod migrator;
+
+fn do_migrate(){
+    println!("Here!");
+    async fn run() -> Result<(), DbErr>{
+        let db = backend::run().await.unwrap();
+        let schema_manager = SchemaManager::new(&db);
+        migrator::Migrator::refresh(&db).await?;
+        assert!(schema_manager.has_table("user").await?);
+        Ok(())
+    }
+    task::block_on(run());
+}
 
 fn help() {
     fn print_command( command : &str, description : &str){
@@ -16,8 +30,9 @@ fn help() {
 }
 
 fn main() {
-    let commands = HashMap::from([
-        ("--help", help)
+    let commands: HashMap<&str, fn()> = HashMap::from([
+        ("--help", help as fn()),
+        ("--migrate", do_migrate as fn())
     ]);
 
     let args: Vec<String> = env::args().collect();
@@ -29,8 +44,6 @@ fn main() {
         }
     }
 
-    if let Err(err) = block_on(backend::run()) {
-        panic!("{}", err);
-    }
+
 
 }

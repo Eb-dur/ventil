@@ -1,9 +1,9 @@
-use sea_orm::{ConnectionTrait, Database, DbBackend, DbErr, Statement};
+use sea_orm::{ConnectionTrait, Database, DatabaseConnection, DbBackend, DbErr, Statement};
 
 const DATABASE_URL: &str = "sqlite:./ventil.db?mode=rwc";
 const DB_NAME: &str = "ventil_db";
 
-pub async fn run() -> Result<(), DbErr> {
+pub async fn run() -> Result<DatabaseConnection, DbErr> {
     let db = Database::connect(DATABASE_URL).await?;
 
     let db = &match db.get_database_backend() {
@@ -35,5 +35,5 @@ pub async fn run() -> Result<(), DbErr> {
         DbBackend::Sqlite => db,
     };
 
-    Ok(())
+    Ok(db.to_owned())
 }
