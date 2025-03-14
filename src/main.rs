@@ -8,15 +8,25 @@ mod backend;
 mod migrator;
 
 fn do_migrate(){
-    println!("Here!");
     async fn run() -> Result<(), DbErr>{
-        let db = backend::run().await.unwrap();
-        let schema_manager = SchemaManager::new(&db);
-        migrator::Migrator::refresh(&db).await?;
-        assert!(schema_manager.has_table("user").await?);
+        let db = backend::run().await
+            .map_err(|e| {
+                eprintln!("Error: Could not connect to the database. Reason: {:?}", e);
+                e
+        })?;
+        
+        migrator::Migrator::up(&db, None).await.
+            map_err(|e| {
+                eprintln!("Error: Could not refresh the database. Reason: {:?}", e);
+                e
+        })?;
+        
         Ok(())
     }
-    task::block_on(run());
+    match task::block_on(run()){
+        Err(e) => eprintln!("Error: Could not migrate database!, \n Reason: {e}"),
+        Ok(()) => println!("Success, database migrated!"),
+    }
 }
 
 fn help() {
@@ -26,12 +36,13 @@ fn help() {
     println!("--------Welcome to Ventil!--------");
     println!("Commands:");
     print_command("--help", "Display this menu");
-    
+    print_command("--migrate", "Apply migrations");
 }
 
 fn main() {
     let commands: HashMap<&str, fn()> = HashMap::from([
         ("--help", help as fn()),
+        ("-h", help as fn()),
         ("--migrate", do_migrate as fn())
     ]);
 
@@ -40,7 +51,7 @@ fn main() {
     for command in &args[1..]{
         match commands.get(&command.as_str()) {
             Some(func) => func(),
-            None => eprintln!("Error: {} is not a command", &command),
+            None => eprintln!("Error: {} is not a command, --help for list of commands", &command),
         }
     }
 
