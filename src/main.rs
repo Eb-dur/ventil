@@ -21,7 +21,6 @@ fn main() {
     ]);
 
     let args: Vec<String> = env::args().collect();
-    dbg!(&args);
     
     for command in &args[1..]{
         match commands.get(&command.as_str()) {
