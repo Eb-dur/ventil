@@ -4,7 +4,7 @@ pub struct Migration;
 
 impl MigrationName for Migration {
     fn name(&self) -> &str {
-        "m_20250314_000001_create_user_table"
+        "m_20250314_000001_create_owner_table"
     }
 }
 
@@ -15,9 +15,9 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(User::Table)
+                    .table(Owner::Table)
                     .col(
-                        ColumnDef::new(User::Id)
+                        ColumnDef::new(Owner::Id)
                             .integer()
                             .not_null()
                             .auto_increment()
@@ -29,13 +29,13 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(User::Table).to_owned())
+            .drop_table(Table::drop().table(Owner::Table).to_owned())
             .await
     }
 }
 
     #[derive(Iden)]
-    pub enum User{
+    pub enum Owner{
         Table,
         Id,
     }

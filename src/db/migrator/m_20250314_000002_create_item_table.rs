@@ -23,7 +23,7 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Item::Type)
+                    .col(ColumnDef::new(Item::ItemType)
                         .string_len(255)
                         .not_null())
                     .to_owned(),
@@ -41,5 +41,5 @@ impl MigrationTrait for Migration {
     pub enum Item{
         Table,
         Id,
-        Type,
+        ItemType,
     }

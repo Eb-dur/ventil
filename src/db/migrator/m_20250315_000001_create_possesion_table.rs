@@ -1,6 +1,6 @@
 use sea_orm_migration::prelude::*;
 
-use super::{m_20250314_000001_create_user_table::User, m_20250314_000002_create_item_table::Item};
+use super::{m_20250314_000001_create_owner_table::Owner, m_20250314_000002_create_item_table::Item};
 
 pub struct Migration;
 
@@ -24,12 +24,12 @@ impl MigrationTrait for Migration {
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Possession::User).integer().not_null())
+                    .col(ColumnDef::new(Possession::Owner).integer().not_null())
                     .foreign_key(
                         ForeignKey::create()
                             .name("Possession-owner")
-                            .from(Possession::Table, Possession::User)
-                            .to(User::Table, User::Id),
+                            .from(Possession::Table, Possession::Owner)
+                            .to(Owner::Table, Owner::Id),
                     )
                     .col(ColumnDef::new(Possession::Item).integer().not_null())
                     .foreign_key(
@@ -55,5 +55,5 @@ pub enum Possession {
     Table,
     Id,
     Item,
-    User,
+    Owner,
 }
