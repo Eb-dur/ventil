@@ -2,6 +2,7 @@ use sea_orm_migration::prelude::*;
 
 mod m_20250314_000001_create_user_table;
 mod m_20250314_000002_create_item_table;
+mod m_20250315_000001_create_possesion_table;
 
 pub struct Migrator;
 
@@ -11,6 +12,7 @@ impl MigratorTrait for Migrator {
         vec![
             Box::new(m_20250314_000001_create_user_table::Migration),
             Box::new(m_20250314_000002_create_item_table::Migration),
+            Box::new(m_20250315_000001_create_possesion_table::Migration),
         ]
     }
 }

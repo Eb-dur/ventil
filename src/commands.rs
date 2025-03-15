@@ -1,12 +1,11 @@
-use std::collections::HashMap;
-use sea_orm_migration::prelude::*;
 use async_std::task;
 use sea_orm::DbErr;
+use sea_orm_migration::prelude::*;
+use std::collections::HashMap;
 
-use crate::migrator;
-use crate::backend;
+use crate::db::{database, migrator};
 
-pub fn get_commads() -> HashMap< &'static str, fn()> {
+pub fn get_commads() -> HashMap<&'static str, fn()> {
     return HashMap::from([
         ("--help", help as fn()),
         ("-h", help as fn()),
@@ -15,7 +14,7 @@ pub fn get_commads() -> HashMap< &'static str, fn()> {
 }
 fn do_migrate() {
     async fn run() -> Result<(), DbErr> {
-        let db = backend::run().await.map_err(|e| {
+        let db = database::run().await.map_err(|e| {
             eprintln!("Error: Could not connect to the database. Reason: {:?}", e);
             e
         })?;
