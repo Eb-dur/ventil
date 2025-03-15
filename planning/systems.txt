@@ -1,4 +1,4 @@
 db = sqlite
 ORM = Sea-orm
-Server = ?
+Server = Rocket
 Admin panel = ?

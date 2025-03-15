@@ -1,5 +1,2 @@
 We need a project to work in.
 call --init
-
-A way to dynamically add new types of items wither through api or through config files
-Migrations?
