@@ -1,0 +1,4 @@
+db = sqlite
+ORM = Sea-orm
+Server = ?
+Admin panel = ?
