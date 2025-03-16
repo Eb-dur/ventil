@@ -2,7 +2,7 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::db::database::{get_connection, run};
+    use crate::db::database::set_up_db;
     use crate::db::entities::{prelude::*, *};
     use crate::db::migrator;
     use sea_orm_migration::MigratorTrait;
@@ -14,7 +14,7 @@ mod tests {
     }
     async fn create_db() {
 
-        let db = run().await;
+        let db = set_up_db().await;
         assert!(db.is_ok());
         let db = db.unwrap();
         let res = migrator::Migrator::up(&db, None).await;
@@ -29,7 +29,7 @@ mod tests {
     async fn insert_owner() {
         create_db().await;
 
-        let db = get_connection().await;
+        let db = set_up_db().await;
 
         assert!(db.is_ok());
 
@@ -51,7 +51,7 @@ mod tests {
     async fn insert_item() {
         create_db().await;
 
-        let db = get_connection().await;
+        let db = set_up_db().await;
 
         assert!(db.is_ok());
 
@@ -77,7 +77,7 @@ mod tests {
         insert_owner().await;
         insert_item().await;
 
-        let db = get_connection().await;
+        let db = set_up_db().await;
         assert!(db.is_ok());
 
         let db = db.unwrap();
