@@ -7,18 +7,26 @@ mod tests {
     use crate::db::migrator;
     use sea_orm_migration::MigratorTrait;
     use sea_orm::*;
+    use tokio::sync::OnceCell;
+
+    static MIGRATION_DONE: OnceCell<Result<(), DbErr>> = OnceCell::const_new();
 
     #[tokio::test]
     async fn create_db_test(){
        create_db().await;
     }
+    
     async fn create_db() {
-
         let db = set_up_db().await;
         assert!(db.is_ok());
         let db = db.unwrap();
-        let res = migrator::Migrator::up(&db, None).await;
-        assert!(res.is_ok());
+        
+    
+        let result = MIGRATION_DONE.get_or_init(|| async {
+            migrator::Migrator::up(&db, None).await
+        }).await;
+        
+        assert!(result.is_ok());
     }
 
     #[tokio::test]
@@ -48,6 +56,7 @@ mod tests {
     async fn insert_item_test(){
         insert_item().await
     }
+    
     async fn insert_item() {
         create_db().await;
 
