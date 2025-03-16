@@ -1,7 +1,7 @@
-use sea_orm::{ConnectionTrait, Database, DatabaseConnection, DbBackend, DbErr, Statement};
+use sea_orm::{Database, DatabaseConnection, DbErr};
 
 const DATABASE_URL: &str = "sqlite:./ventil.db?mode=rwc";
-const DB_NAME: &str = "ventil_db";
+//const DB_NAME: &str = "ventil_db";
 
 
 pub async fn set_up_db() -> Result<DatabaseConnection, DbErr> {
