@@ -1,15 +1,8 @@
-use sea_orm::{EntityTrait, DatabaseConnection};
-use crate::db::entities::prelude::Item;
 use crate::db::database::set_up_db;
-use rocket::serde::{Serialize,json::Json};
 use rocket::*;
 
-#[derive(Serialize)]
-#[serde(crate = "rocket::serde")]
-struct ItemResponse {
-    item_type: String,
-    id: i32,  // Adjust the type if your ID is not i32
-}
+use super::{item::routes::*, owner::routes::OwnerRoutes, possession::routes::PossessionRoutes};
+
 
 
 #[get("/")]
@@ -17,24 +10,7 @@ async fn index() -> &'static str {
     "Hello, traders!"
 }
 
-#[get("/items")]
-async fn items(database: &State<DatabaseConnection>) -> Json<Vec<ItemResponse>>{
-    let db = database as &DatabaseConnection;
 
-    let item_names = Item::find()
-        .all(db)
-        .await
-        .unwrap()
-        .into_iter()
-        .map(|i| ItemResponse {
-            item_type: i.item_type,
-            id: i.id
-        })
-        .collect::<Vec<ItemResponse>>();
-
-    Json(item_names)
-
-}
 
 async fn rocket() -> Rocket<Build> {
     let database = match set_up_db().await {
@@ -44,7 +20,10 @@ async fn rocket() -> Rocket<Build> {
 
     rocket::build()
     .manage(database)
-    .mount("/", routes![index, items])
+    .mount("/", routes![index])
+    .mount_items()
+    .mount_owners()
+    .mount_possessions()
 }
 
 
