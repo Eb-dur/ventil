@@ -1,18 +1,30 @@
-use async_std::task;
 use sea_orm::DbErr;
 use sea_orm_migration::prelude::*;
 use std::collections::HashMap;
+use std::future::Future;
+use std::pin::Pin;
 
 use crate::db::{database, migrator};
+use crate::serv::serv_main;
 
-pub fn get_commads() -> HashMap<&'static str, fn()> {
+
+
+type AsyncFn = fn() -> Pin<Box<dyn Future<Output = ()> + Send>>;
+
+pub fn get_commands() -> HashMap<&'static str, AsyncFn> {
+    let help_fn: AsyncFn = || Box::pin(async { help() });
+    let migrate_fn: AsyncFn = || Box::pin(async { do_migrate().await });
+    let serve_fn: AsyncFn = || Box::pin(serv_main::start_server());
+    
     return HashMap::from([
-        ("--help", help as fn()),
-        ("-h", help as fn()),
-        ("--migrate", do_migrate as fn()),
+        ("--help", help_fn),
+        ("-h", help_fn),
+        ("--migrate", migrate_fn),
+        ("--serve", serve_fn),
     ]);
 }
-fn do_migrate() {
+
+async fn do_migrate() {
     async fn run() -> Result<(), DbErr> {
         let db = database::run().await.map_err(|e| {
             eprintln!("Error: Could not connect to the database. Reason: {:?}", e);
@@ -26,7 +38,7 @@ fn do_migrate() {
 
         Ok(())
     }
-    match task::block_on(run()) {
+    match run().await {
         Err(e) => eprintln!("Error: Could not migrate database!, \n Reason: {e}"),
         Ok(()) => println!("Success, database migrated!"),
     }

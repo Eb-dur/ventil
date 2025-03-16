@@ -5,31 +5,31 @@ mod tests {
     use crate::db::database::{get_connection, run};
     use crate::db::entities::{prelude::*, *};
     use crate::db::migrator;
-    use async_std::task;
-    use sea_orm::*;
     use sea_orm_migration::MigratorTrait;
+    use sea_orm::*;
 
-    #[test]
-    fn create_db_test(){
-        create_db();
+    #[tokio::test]
+    async fn create_db_test(){
+       create_db().await;
     }
-    fn create_db() {
+    async fn create_db() {
 
-        let db = task::block_on(run());
+        let db = run().await;
         assert!(db.is_ok());
         let db = db.unwrap();
-        let res = task::block_on(migrator::Migrator::up(&db, None));
+        let res = migrator::Migrator::up(&db, None).await;
         assert!(res.is_ok());
     }
 
-    #[test]
-    fn insert_owner_test(){
-        insert_owner();   
+    #[tokio::test]
+    async fn insert_owner_test(){
+        insert_owner().await
     }
-    fn insert_owner() {
-        create_db();
 
-        let db = task::block_on(get_connection());
+    async fn insert_owner() {
+        create_db().await;
+
+        let db = get_connection().await;
 
         assert!(db.is_ok());
 
@@ -39,19 +39,19 @@ mod tests {
             ..Default::default()
         };
 
-        let res = task::block_on(Owner::insert(user_test).exec(&db));
+        let res = Owner::insert(user_test).exec(&db).await;
 
         assert!(res.is_ok());
     }
 
-    #[test]
-    fn insert_item_test(){
-        insert_item();
+    #[tokio::test]
+    async fn insert_item_test(){
+        insert_item().await
     }
-    fn insert_item() {
-        create_db();
+    async fn insert_item() {
+        create_db().await;
 
-        let db = task::block_on(get_connection());
+        let db = get_connection().await;
 
         assert!(db.is_ok());
 
@@ -62,31 +62,31 @@ mod tests {
             ..Default::default()
         };
 
-        let res = task::block_on(Item::insert(item_test).exec(&db));
+        let res = Item::insert(item_test).exec(&db).await;
 
         assert!(res.is_ok());
     }
 
-    #[test]
-    fn insert_possession_test(){
-        insert_possession();
+    #[tokio::test]
+    async fn insert_possession_test(){
+        insert_possession().await;
     }
 
-    fn insert_possession() {
-        create_db();
-        insert_owner();
-        insert_item();
+    async fn insert_possession() {
+        create_db().await;
+        insert_owner().await;
+        insert_item().await;
 
-        let db = task::block_on(get_connection());
+        let db = get_connection().await;
         assert!(db.is_ok());
 
         let db = db.unwrap();
 
-        let owner = task::block_on(Owner::find_by_id(1).one(&db))
+        let owner = Owner::find_by_id(1).one(&db).await
             .unwrap()
             .unwrap();
 
-        let item = task::block_on(Item::find_by_id(1).one(&db))
+        let item = Item::find_by_id(1).one(&db).await
             .unwrap()
             .unwrap();
 
@@ -96,7 +96,7 @@ mod tests {
             ..Default::default()
         };
 
-        let res = task::block_on(Possession::insert(possession_test).exec(&db));
+        let res = Possession::insert(possession_test).exec(&db).await;
 
         assert!(res.is_ok());
     }
