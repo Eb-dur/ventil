@@ -5,7 +5,7 @@ use std::future::Future;
 use std::pin::Pin;
 
 use crate::db::{database, migrator};
-use crate::serv::serv_main;
+use crate::serve::serve_main;
 
 
 
@@ -14,7 +14,7 @@ type AsyncFn = fn() -> Pin<Box<dyn Future<Output = ()> + Send>>;
 pub fn get_commands() -> HashMap<&'static str, AsyncFn> {
     let help_fn: AsyncFn = || Box::pin(async { help() });
     let migrate_fn: AsyncFn = || Box::pin(async { do_migrate().await });
-    let serve_fn: AsyncFn = || Box::pin(serv_main::start_server());
+    let serve_fn: AsyncFn = || Box::pin(serve_main::start_server());
     
     return HashMap::from([
         ("--help", help_fn),
@@ -26,7 +26,7 @@ pub fn get_commands() -> HashMap<&'static str, AsyncFn> {
 
 async fn do_migrate() {
     async fn run() -> Result<(), DbErr> {
-        let db = database::run().await.map_err(|e| {
+        let db = database::set_up_db().await.map_err(|e| {
             eprintln!("Error: Could not connect to the database. Reason: {:?}", e);
             e
         })?;

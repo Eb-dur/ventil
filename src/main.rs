@@ -2,7 +2,7 @@ use std::env;
 
 mod commands;
 mod db;
-mod serv;
+mod serve;
 
 #[rocket::main]
 async fn main() {
