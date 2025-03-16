@@ -11,6 +11,7 @@ use sea_orm::{
     ActiveModelTrait, ActiveValue, ColumnTrait, DatabaseConnection, EntityTrait, ModelTrait,
     QueryFilter,
 };
+use utoipa::{ToSchema, OpenApi};
 
 pub trait PossessionRoutes {
     fn mount_possessions(self) -> Self;
@@ -34,7 +35,7 @@ impl PossessionRoutes for Rocket<Build> {
 }
 
 // Response model with related data
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 #[serde(crate = "rocket::serde")]
 pub struct PossessionResponse {
     pub id: i32,
@@ -44,7 +45,7 @@ pub struct PossessionResponse {
 }
 
 // Request model for creating a possession
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(crate = "rocket::serde")]
 pub struct CreatePossessionRequest {
     pub owner_id: i32,
@@ -52,20 +53,28 @@ pub struct CreatePossessionRequest {
 }
 
 // Request model for updating a possession
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 #[serde(crate = "rocket::serde")]
 pub struct UpdatePossessionRequest {
     pub owner_id: i32,
     pub item_id: i32,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 #[serde(crate = "rocket::serde")]
 pub struct ApiResponse {
     pub message: String,
 }
 
 // GET /possessions - Get all possessions
+#[utoipa::path(
+    get,
+    path = "/possessions",
+    tags = ["possessions"],
+    responses(
+        (status = 200, description = "List all possessions successfully", body = [PossessionResponse])
+    )
+)]
 #[get("/")]
 pub async fn get_all_possessions(
     database: &State<DatabaseConnection>,
@@ -99,6 +108,18 @@ pub async fn get_all_possessions(
 }
 
 // GET /possessions/<id> - Get possession by ID
+#[utoipa::path(
+    get,
+    path = "/possessions/{id}",
+    tags = ["possessions"],
+    params(
+        ("id" = i32, Path, description = "Possession identifier")
+    ),
+    responses(
+        (status = 200, description = "Possession found successfully", body = PossessionResponse),
+        (status = 404, description = "Possession not found", body = ApiResponse)
+    )
+)]
 #[get("/<id>")]
 pub async fn get_possession_by_id(
     id: i32,
@@ -133,6 +154,16 @@ pub async fn get_possession_by_id(
 }
 
 // POST /possessions - Create a new possession
+#[utoipa::path(
+    post,
+    path = "/possessions",
+    tags = ["possessions"],
+    request_body = CreatePossessionRequest,
+    responses(
+        (status = 201, description = "Possession created successfully", body = PossessionResponse),
+        (status = 400, description = "Invalid request data", body = ApiResponse)
+    )
+)]
 #[post("/", data = "<possession_data>")]
 pub async fn create_possession(
     possession_data: Json<CreatePossessionRequest>,
@@ -185,6 +216,19 @@ pub async fn create_possession(
 }
 
 // PUT /possessions/<id> - Update a possession
+#[utoipa::path(
+    put,
+    path = "/possessions/{id}",
+    tags = ["possessions"],
+    params(
+        ("id" = i32, Path, description = "Possession identifier")
+    ),
+    request_body = UpdatePossessionRequest,
+    responses(
+        (status = 200, description = "Possession updated successfully", body = PossessionResponse),
+        (status = 404, description = "Possession not found", body = ApiResponse)
+    )
+)]
 #[put("/<id>", data = "<possession_data>")]
 pub async fn update_possession(
     id: i32,
@@ -245,6 +289,18 @@ pub async fn update_possession(
 }
 
 // DELETE /possessions/<id> - Delete a possession
+#[utoipa::path(
+    delete,
+    path = "/possessions/{id}",
+    tags = ["possessions"],
+    params(
+        ("id" = i32, Path, description = "Possession identifier")
+    ),
+    responses(
+        (status = 204, description = "Possession deleted successfully"),
+        (status = 404, description = "Possession not found", body = ApiResponse)
+    )
+)]
 #[delete("/<id>")]
 pub async fn delete_possession(
     id: i32,
@@ -270,6 +326,18 @@ pub async fn delete_possession(
 // Additional helper endpoints for relationships
 
 // GET /possessions/owner/<owner_id> - Get all possessions for an owner
+#[utoipa::path(
+    get,
+    path = "/possessions/owner/{owner_id}",
+    tags = ["possessions"],
+    params(
+        ("owner_id" = i32, Path, description = "Owner identifier")
+    ),
+    responses(
+        (status = 200, description = "Possessions found successfully", body = [PossessionResponse]),
+        (status = 404, description = "Owner not found", body = ApiResponse)
+    )
+)]
 #[get("/owner/<owner_id>")]
 pub async fn get_possessions_by_owner(
     owner_id: i32,
@@ -317,6 +385,18 @@ pub async fn get_possessions_by_owner(
 }
 
 // GET /possessions/item/<item_id> - Get all possessions for an item
+#[utoipa::path(
+    get,
+    path = "/possessions/item/{item_id}",
+    tags = ["possessions"],
+    params(
+        ("item_id" = i32, Path, description = "Item identifier")
+    ),
+    responses(
+        (status = 200, description = "Possessions found successfully", body = [PossessionResponse]),
+        (status = 404, description = "Item not found", body = ApiResponse)
+    )
+)]
 #[get("/item/<item_id>")]
 pub async fn get_possessions_by_item(
     item_id: i32,
@@ -353,3 +433,24 @@ pub async fn get_possessions_by_item(
 
     Ok(Json(responses))
 }
+
+// Create the OpenAPI documentation struct
+#[derive(OpenApi)]
+#[openapi(
+    paths(
+        get_all_possessions,
+        get_possession_by_id,
+        create_possession,
+        update_possession,
+        delete_possession,
+        get_possessions_by_owner,
+        get_possessions_by_item
+    ),
+    components(
+        schemas(PossessionResponse, CreatePossessionRequest, UpdatePossessionRequest, ApiResponse)
+    ),
+    tags(
+        (name = "possessions", description = "Possession management API")
+    )
+)]
+pub struct PossessionApiDoc;

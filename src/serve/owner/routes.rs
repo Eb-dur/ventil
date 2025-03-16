@@ -8,6 +8,7 @@ use rocket::{
     serde::{Deserialize, Serialize, json::Json},
 };
 use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, ModelTrait};
+use utoipa::{ToSchema, OpenApi};
 
 pub trait OwnerRoutes {
     fn mount_owners(self) -> Self;
@@ -22,26 +23,34 @@ impl OwnerRoutes for Rocket<Build> {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, ToSchema)]
 #[serde(crate = "rocket::serde")]
 pub struct OwnerResponse {
     pub id: i32,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize, ToSchema)]
 #[serde(crate = "rocket::serde")]
 pub struct CreateOwnerRequest {
     // Empty since Owner doesn't have any fields other than ID
     // which is auto-generated
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, ToSchema)]
 #[serde(crate = "rocket::serde")]
 pub struct ApiResponse {
     pub message: String,
 }
 
-// GET /owners - Get all owners
+/// Get all owners
+#[utoipa::path(
+    get,
+    path = "/owners",
+    tags = ["owners"],
+    responses(
+        (status = 200, description = "List all owners successfully", body = [OwnerResponse])
+    )
+)]
 #[get("/")]
 pub async fn get_all_owners(database: &State<DatabaseConnection>) -> Json<Vec<OwnerResponse>> {
     let db = database as &DatabaseConnection;
@@ -57,7 +66,19 @@ pub async fn get_all_owners(database: &State<DatabaseConnection>) -> Json<Vec<Ow
     Json(owners)
 }
 
-// GET /owners/<id> - Get owner by ID
+/// Get owner by ID
+#[utoipa::path(
+    get,
+    path = "/owners/{id}",
+    tags = ["owners"],
+    params(
+        ("id" = i32, Path, description = "Owner identifier")
+    ),
+    responses(
+        (status = 200, description = "Owner found successfully", body = OwnerResponse),
+        (status = 404, description = "Owner not found", body = ApiResponse)
+    )
+)]
 #[get("/<id>")]
 pub async fn get_owner_by_id(
     id: i32,
@@ -73,7 +94,16 @@ pub async fn get_owner_by_id(
     }
 }
 
-// POST /owners - Create a new owner
+/// Create a new owner
+#[utoipa::path(
+    post,
+    path = "/owners",
+    tags = ["owners"],
+    request_body = CreateOwnerRequest,
+    responses(
+        (status = 201, description = "Owner created successfully", body = OwnerResponse)
+    )
+)]
 #[post("/", data = "<_owner_data>")]
 pub async fn create_owner(
     _owner_data: Json<CreateOwnerRequest>,
@@ -95,7 +125,19 @@ pub async fn create_owner(
     }))
 }
 
-// DELETE /owners/<id> - Delete an owner
+/// Delete an owner
+#[utoipa::path(
+    delete,
+    path = "/owners/{id}",
+    tags = ["owners"],
+    params(
+        ("id" = i32, Path, description = "Owner identifier")
+    ),
+    responses(
+        (status = 204, description = "Owner deleted successfully"),
+        (status = 404, description = "Owner not found", body = ApiResponse)
+    )
+)]
 #[delete("/<id>")]
 pub async fn delete_owner(
     id: i32,
@@ -117,3 +159,21 @@ pub async fn delete_owner(
         }))),
     }
 }
+
+// Create the OpenAPI documentation using the utoipa macro
+#[derive(OpenApi)]
+#[openapi(
+    paths(
+        get_all_owners,
+        get_owner_by_id,
+        create_owner,
+        delete_owner
+    ),
+    components(
+        schemas(OwnerResponse, CreateOwnerRequest, ApiResponse)
+    ),
+    tags(
+        (name = "owners", description = "Owner management API")
+    )
+)]
+pub struct OwnerApiDoc;
