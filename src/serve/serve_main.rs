@@ -6,6 +6,7 @@ use utoipa_swagger_ui::SwaggerUi;
 use super::item::routes::{ItemApiDoc, ItemRoutes};
 use super::owner::routes::{OwnerApiDoc, OwnerRoutes};
 use super::possession::routes::{PossessionApiDoc, PossessionRoutes};
+use super::trade::logic::get_trades_mutex;
 
 #[get("/")]
 async fn index() -> &'static str {
@@ -37,6 +38,7 @@ async fn rocket() -> Rocket<Build> {
 
     rocket::build()
         .manage(database)
+        .manage(get_trades_mutex())
         .mount("/", routes![index])
         .mount_items()
         .mount_owners()
