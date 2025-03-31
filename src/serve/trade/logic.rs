@@ -2,11 +2,13 @@ use crate::db::entities::owner::Model as OwnerModel;
 use crate::db::entities::possession::Model as PossessionModel;
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use std::collections::HashMap;
 
-pub type TradesMutex = Arc<Mutex<Vec<Trade>>>;
+pub type TradeId = u64;
+pub type TradesMutex = Arc<Mutex<HashMap<TradeId,Trade>>>;
 
 pub fn get_trades_mutex() -> TradesMutex {
-    return Arc::new(Mutex::new(Vec::new()));
+    return Arc::new(Mutex::new(HashMap::new()));
 }
 
 pub trait TradeLogic {
@@ -16,15 +18,15 @@ pub trait TradeLogic {
 }
 
 pub struct Trade {
-    id: u64,
+    pub id: u64,
 
-    trader_1: OwnerModel,
-    trade_1_accept: bool,
-    trade_1_items: Vec<i32>,
+    pub trader_1: OwnerModel,
+    pub trade_1_accept: bool,
+    pub trade_1_items: Vec<i32>,
 
-    trader_2: OwnerModel,
-    trade_2_accept: bool,
-    trade_2_items: Vec<i32>,
+    pub trader_2: OwnerModel,
+    pub trade_2_accept: bool,
+    pub trade_2_items: Vec<i32>,
 }
 
 impl TradeLogic for Trade {

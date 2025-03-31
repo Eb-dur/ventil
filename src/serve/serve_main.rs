@@ -2,10 +2,10 @@ use crate::db::database::set_up_db;
 use rocket::*;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
-
 use super::item::routes::{ItemApiDoc, ItemRoutes};
 use super::owner::routes::{OwnerApiDoc, OwnerRoutes};
 use super::possession::routes::{PossessionApiDoc, PossessionRoutes};
+use super::trade::routes::{TradeApiDoc, TradeRoutes};
 use super::trade::logic::get_trades_mutex;
 
 #[get("/")]
@@ -25,7 +25,8 @@ async fn index() -> &'static str {
     tags(
         (name = "items", description = "Item management API"),
         (name = "owners", description = "Owner management API"),
-        (name = "possessions", description = "Possession management API")
+        (name = "possessions", description = "Possession management API"),
+        (name = "trades", description = "Trade management API")
     )
 )]
 struct ApiDoc;
@@ -43,6 +44,7 @@ async fn rocket() -> Rocket<Build> {
         .mount_items()
         .mount_owners()
         .mount_possessions()
+        .mount_trades()
         .mount(
             "/",
             SwaggerUi::new("/docs/<_..>").url(
@@ -50,7 +52,8 @@ async fn rocket() -> Rocket<Build> {
                 ApiDoc::openapi()
                     .merge_from(ItemApiDoc::openapi())
                     .merge_from(OwnerApiDoc::openapi())
-                    .merge_from(PossessionApiDoc::openapi()),
+                    .merge_from(PossessionApiDoc::openapi())
+                    .merge_from(TradeApiDoc::openapi()),
             ),
         )
 }
